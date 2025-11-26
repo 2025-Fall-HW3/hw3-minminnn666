@@ -70,8 +70,19 @@ class MyPortfolio:
         """
         TODO: Complete Task 4 Below
         """
-        
-        
+        for i in range(self.lookback + 1, len(self.price)):
+
+            todays_returns = self.returns[assets].iloc[i]
+
+            best_asset = todays_returns.idxmax()
+
+            weights = np.zeros(len(assets))
+
+            best_asset_idx = list(assets).index(best_asset)
+
+            weights[best_asset_idx] = 1.0
+
+            self.portfolio_weights.loc[self.price.index[i], assets] = weights
         """
         TODO: Complete Task 4 Above
         """

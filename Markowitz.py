@@ -62,7 +62,9 @@ class EqualWeightPortfolio:
         """
         TODO: Complete Task 1 Below
         """
-
+        n_assets = len(assets)
+        if n_assets > 0:
+            self.portfolio_weights[assets] = 1.0 / n_assets
         """
         TODO: Complete Task 1 Above
         """
@@ -113,7 +115,19 @@ class RiskParityPortfolio:
         """
         TODO: Complete Task 2 Below
         """
-
+        
+        for i in range(self.lookback + 1, len(df)):
+            # 抓取過去 lookback 天的真實報酬率
+            window_returns = df_returns[assets].iloc[i - self.lookback : i]
+            
+            # 計算波動率
+            volatility = window_returns.std()
+            
+            # 倒數波動率加權法
+            inv_vol = 1.0 / volatility
+            weights = inv_vol / inv_vol.sum()
+            
+            self.portfolio_weights.loc[df.index[i], assets] = weights
 
 
         """
@@ -188,11 +202,14 @@ class MeanVariancePortfolio:
                 TODO: Complete Task 3 Below
                 """
 
-                # Sample Code: Initialize Decision w and the Objective
-                # NOTE: You can modify the following code
-                w = model.addMVar(n, name="w", ub=1)
-                model.setObjective(w.sum(), gp.GRB.MAXIMIZE)
-
+                w = model.addMVar(n, name="w", lb=0.0, ub=1.0)
+                
+                portfolio_return = mu @ w
+                portfolio_risk = w @ Sigma @ w
+                
+                model.setObjective(portfolio_return - 0.5 * gamma * portfolio_risk, gp.GRB.MAXIMIZE)
+                model.addConstr(w.sum() == 1, name="budget")
+                
                 """
                 TODO: Complete Task 3 Above
                 """
